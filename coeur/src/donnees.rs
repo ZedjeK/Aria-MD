@@ -1,4 +1,4 @@
-//! Le dossier de données, `%USERPROFILE%\.Aria-{{NOM}}`, et ce qu'il contient. Tout ce que l'appli écrit va là :
+//! Le dossier de données, `%USERPROFILE%\.Aria-MD`, et ce qu'il contient. Tout ce que l'appli écrit va là :
 //! rien dans `%APPDATA%`, `%LOCALAPPDATA%` ni `%TEMP%`.
 
 use std::fs;

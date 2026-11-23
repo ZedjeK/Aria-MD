@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Aria {{NOM}}",
-  "identifier": "io.github.zedjek.aria-{{NOM_MIN}}",
+  "productName": "Aria MD",
+  "identifier": "io.github.zedjek.aria-md",
   "build": {
     "frontendDist": "../interface/dist",
     "devUrl": "http://localhost:1420"
@@ -17,8 +17,8 @@
   "bundle": {
     "active": false,
     "publisher": "ZedjeK",
-    "copyright": "© {{ANNEE}} ZedjeK",
-    "shortDescription": "{{PROMESSE}}",
+    "copyright": "© 2026 ZedjeK",
+    "shortDescription": "Éditeur et lecteur Markdown simple : code et aperçu, plan cliquable, raccourcis de mise en forme, 100 % local",
     "icon": ["icons/icon.ico"]
   }
 }

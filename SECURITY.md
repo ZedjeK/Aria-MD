@@ -16,6 +16,6 @@ correctif : la réponse à une faille est une nouvelle version.
 
 ## Ce que tu peux attendre
 
-Aria {{NOM}} est un projet personnel, sans audit de sécurité indépendant. Aucun
+Aria MD est un projet personnel, sans audit de sécurité indépendant. Aucun
 délai n'est promis. Une faille confirmée est corrigée dans une nouvelle version,
 et les notes de cette version le disent.

@@ -7,4 +7,4 @@ sont dans `docs/releases/`.
 
 ### Ajouté
 
-- Première version d'Aria {{NOM}}.
+- Première version d'Aria MD.

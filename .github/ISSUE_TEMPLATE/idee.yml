@@ -1,5 +1,5 @@
 name: "Idée"
-description: "Proposer une amélioration d'Aria {{NOM}}."
+description: "Proposer une amélioration d'Aria MD."
 labels: ["enhancement"]
 body:
   - type: textarea

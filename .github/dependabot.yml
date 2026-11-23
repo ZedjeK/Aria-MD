@@ -14,29 +14,23 @@ updates:
     groups:
       mises-a-jour-mineures:
         update-types: ["minor", "patch"]
-  # <<STACK:dependabot>>
-  # <!-- MODELE:debut -->
-  # Dépôt modèle seulement : les dépendances des squelettes (stacks\). init.ps1 retire ces blocs dans l'appli créée,
-  # qui garde celui de sa stack. Les actions recopiées dans les _socle\outils.txt ne sont pas lues par Dependabot :
-  # tools\tester.ps1 vérifie qu'elles gardent le SHA des workflows.
   - package-ecosystem: "cargo"
-    directory: "/stacks/rust-tauri"
+    directory: "/"
     schedule:
       interval: "weekly"
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
     groups:
-      squelette-cargo-mineures:
+      cargo-mineures:
         update-types: ["minor", "patch"]
   - package-ecosystem: "npm"
-    directory: "/stacks/rust-tauri/interface"
+    directory: "/interface"
     schedule:
       interval: "weekly"
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
     groups:
-      squelette-npm-mineures:
+      npm-mineures:
         update-types: ["minor", "patch"]
-  # <!-- MODELE:fin -->

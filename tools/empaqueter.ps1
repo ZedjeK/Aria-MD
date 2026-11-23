@@ -4,9 +4,9 @@ Fait le zip de la version et son empreinte, à partir de ce que build.ps1 a pos�
 
 .DESCRIPTION
 Produit, dans .work\release\ :
-  Aria-{{NOM}}-<version>.zip          dossier racine Aria-{{NOM}}-<version>\ : ce que build.ps1 a produit,
+  Aria-MD-<version>.zip          dossier racine Aria-MD-<version>\ : ce que build.ps1 a produit,
                                       LICENCES-TIERS.txt, BUILDINFO.txt et fichiers.txt
-  Aria-{{NOM}}-<version>.zip.sha256   « empreinte  nom du fichier »
+  Aria-MD-<version>.zip.sha256   « empreinte  nom du fichier »
 
 fichiers.txt liste, un nom par ligne, tout ce que contient le dossier du zip (sauf lui-même). L'installation par l'exe
 et les mises à jour copient exactement cette liste ; un exe lancé sans ce fichier à côté de lui ne propose pas de
@@ -21,7 +21,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $racine = Split-Path -Parent $PSScriptRoot
-$nom = 'Aria-{{NOM}}'
+$nom = 'Aria-MD'
 $version = "$(& (Join-Path $PSScriptRoot 'version.ps1') | Select-Object -Last 1)".Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Version inattendue : « $version ». Attendu : X.Y.Z." }
 

@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" role="img" aria-label="Logo d'Aria {{NOM}} : un A néon glitché avec {{ELEMENT_ORANGE}} orange">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" role="img" aria-label="Logo d'Aria MD : un A néon glitché avec un trait de surligneur orange">
 <!-- Logo de la famille Aria, comme ceux d'Aria Studio et d'Aria Cockpit : plaque à coins coupés et lignes de balayage,
      A néon glitché (jambe gauche cyan, jambe droite bleu roi, sommet blanc décalé).
      Substitut du modèle : volontairement sans élément orange, pour qu'un logo oublié saute aux yeux. À compléter :
-     dessine {{ELEMENT_ORANGE}} en orange (#FF8A1F) au pied du A, dans le groupe « element-orange », puis lance
+     dessine un trait de surligneur en orange (#FF8A1F) au pied du A, dans le groupe « element-orange », puis lance
      .\tools\icone.ps1 : il en tire l'icône Windows, docs\logo.png et le logo du menu de l'appli.
      À rendre avec un navigateur (Edge, Chromium) : tous les convertisseurs ne gèrent pas le filtre de halo. -->
 <defs><pattern id="S" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1.5" fill="#7DF9FF" opacity="0.07"/></pattern>

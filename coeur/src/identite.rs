@@ -2,16 +2,16 @@
 //! init.ps1.
 
 /// Nom affiché.
-pub const NOM: &str = "Aria {{NOM}}";
+pub const NOM: &str = "Aria MD";
 
 /// Nom de l'exe, sans extension.
-pub const NOM_EXE: &str = "Aria-{{NOM}}";
+pub const NOM_EXE: &str = "Aria-MD";
 
 /// Nom du dossier de données, dans le profil de l'utilisateur.
-pub const DOSSIER_DONNEES: &str = ".Aria-{{NOM}}";
+pub const DOSSIER_DONNEES: &str = ".Aria-MD";
 
 /// La promesse de l'appli, en une phrase.
-pub const PROMESSE: &str = "{{PROMESSE}}";
+pub const PROMESSE: &str = "Éditeur et lecteur Markdown simple : code et aperçu, plan cliquable, raccourcis de mise en forme, 100 % local";
 
 /// Version X.Y.Z, celle de `[workspace.package]` dans Cargo.toml.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -19,11 +19,11 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// L'appli sert en arrière-plan : icône de notification, la croix range la fenêtre dans l'icône, démarrage
 /// automatique proposé (désactivé par défaut). Faux : ni icône ni démarrage automatique, la croix quitte.
 /// Réglé par init.ps1 d'après la fiche projet.
-pub const EN_FOND: bool = {{EN_FOND}};
+pub const EN_FOND: bool = false;
 
 /// L'exe propose de se ranger dans le dossier `programme\` du dossier de données (appli de bureau). Faux : exe
 /// portable seulement. Réglé par init.ps1 d'après la fiche projet.
-pub const INSTALLABLE: bool = {{INSTALLABLE}};
+pub const INSTALLABLE: bool = true;
 
 #[cfg(test)]
 mod tests {
