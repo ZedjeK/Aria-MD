@@ -1,0 +1,16 @@
+Aria {{NOM}} : composants tiers embarqués
+=========================================
+
+Ce fichier liste tout ce que l'exe embarque et qui n'a pas été écrit pour
+Aria {{NOM}}. Il est mis à jour à chaque version et joint au zip.
+
+Pour chaque composant : nom, version, source officielle, licence, et la façon
+dont il a été vérifié (empreinte SHA-256 publiée, signature, ou compilation
+depuis le code source).
+
+<<STACK:licences>>
+
+Autres composants
+-----------------
+
+(à compléter : un bloc par composant que l'appli ajoute, sur le même modèle ; supprime cette ligne s'il n'y en a pas)
