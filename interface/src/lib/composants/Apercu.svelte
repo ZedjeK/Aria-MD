@@ -104,13 +104,33 @@
     font-size: 0.92em;
   }
 
-  .rendu :global(pre) {
-    position: relative;
+  /* Un bloc de code : une barre (le langage, le bouton Copier), puis le code. */
+  .rendu :global(.bloc-code) {
     margin: 0 0 1em;
-    padding: 12px 14px;
-    overflow-x: auto;
     border: 1px solid var(--ligne);
     background: var(--panneau);
+  }
+
+  .rendu :global(.entete-code) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 8px 4px 14px;
+    border-bottom: 1px solid var(--ligne);
+    background: color-mix(in srgb, var(--cyan) 6%, var(--panneau));
+  }
+
+  .rendu :global(.langage) {
+    color: var(--cyan);
+    font: 700 12px var(--police);
+    letter-spacing: 0.06em;
+  }
+
+  .rendu :global(pre) {
+    margin: 0;
+    padding: 12px 14px;
+    overflow-x: auto;
     line-height: 1.5;
   }
 
@@ -120,16 +140,6 @@
     background: none;
     font-size: 13px;
     white-space: pre;
-  }
-
-  .rendu :global(.langage) {
-    position: absolute;
-    top: 4px;
-    right: 8px;
-    color: var(--texte-2);
-    font: 700 10px var(--police);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
   }
 
   .rendu :global(blockquote) {

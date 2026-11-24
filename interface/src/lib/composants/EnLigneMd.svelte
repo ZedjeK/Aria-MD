@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
   import type { EnLigne } from '../markdown';
+  import CodeEnLigne from './CodeEnLigne.svelte';
   import EnLigneMd from './EnLigneMd.svelte';
 
   interface Props {
@@ -14,4 +15,4 @@
   let { noeuds }: Props = $props();
 </script>
 
-{#each noeuds as noeud, i (i)}{#if noeud.type === 'texte'}{noeud.texte}{:else if noeud.type === 'gras'}<strong><EnLigneMd noeuds={noeud.enfants} /></strong>{:else if noeud.type === 'italique'}<em><EnLigneMd noeuds={noeud.enfants} /></em>{:else if noeud.type === 'barre'}<del><EnLigneMd noeuds={noeud.enfants} /></del>{:else if noeud.type === 'surligne'}<mark><EnLigneMd noeuds={noeud.enfants} /></mark>{:else if noeud.type === 'souligne'}<u><EnLigneMd noeuds={noeud.enfants} /></u>{:else if noeud.type === 'code'}<code>{noeud.texte}</code>{:else if noeud.type === 'lien'}<span class="lien" title={noeud.adresse}><EnLigneMd noeuds={noeud.enfants} /></span>{:else if noeud.type === 'image'}<span class="image" title={noeud.adresse}>Image : {noeud.alt === '' ? 'sans texte' : noeud.alt}</span>{:else}<br />{/if}{/each}
+{#each noeuds as noeud, i (i)}{#if noeud.type === 'texte'}{noeud.texte}{:else if noeud.type === 'gras'}<strong><EnLigneMd noeuds={noeud.enfants} /></strong>{:else if noeud.type === 'italique'}<em><EnLigneMd noeuds={noeud.enfants} /></em>{:else if noeud.type === 'barre'}<del><EnLigneMd noeuds={noeud.enfants} /></del>{:else if noeud.type === 'surligne'}<mark><EnLigneMd noeuds={noeud.enfants} /></mark>{:else if noeud.type === 'souligne'}<u><EnLigneMd noeuds={noeud.enfants} /></u>{:else if noeud.type === 'code'}<CodeEnLigne texte={noeud.texte} />{:else if noeud.type === 'lien'}<span class="lien" title={noeud.adresse}><EnLigneMd noeuds={noeud.enfants} /></span>{:else if noeud.type === 'image'}<span class="image" title={noeud.adresse}>Image : {noeud.alt === '' ? 'sans texte' : noeud.alt}</span>{:else}<br />{/if}{/each}
