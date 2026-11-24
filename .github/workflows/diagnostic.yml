@@ -1,0 +1,48 @@
+# TEMPORAIRE : diagnostic de la branche feat/barre-editeur, retiré avant la PR.
+#
+# tools/tester.ps1 s'arrête au premier contrôle en échec. Ici chaque contrôle de l'interface tourne quoi qu'il arrive,
+# pour lire tous les écarts d'un coup. Le Rust ne change pas dans cette branche : la CI de la PR le teste.
+name: Diagnostic
+
+on:
+  push:
+    branches: [feat/barre-editeur]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  diagnostic:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      - name: Paquets de l'interface
+        working-directory: interface
+        run: npm ci --no-audit --no-fund
+
+      - name: svelte-check
+        continue-on-error: true
+        working-directory: interface
+        run: npm run check
+
+      - name: vitest
+        continue-on-error: true
+        working-directory: interface
+        run: npm test
+
+      - name: Compilation de l'interface
+        continue-on-error: true
+        working-directory: interface
+        run: npm run build
