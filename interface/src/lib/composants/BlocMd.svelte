@@ -4,8 +4,10 @@
   d'amener l'aperçu sur un titre du plan. Citations et listes contiennent d'autres blocs, dessinés par ce même composant.
 -->
 <script lang="ts">
+  import { nomDuLangage } from '../langages';
   import type { Alignement, Bloc } from '../markdown';
   import BlocMd from './BlocMd.svelte';
+  import BoutonCopier from './BoutonCopier.svelte';
   import EnLigneMd from './EnLigneMd.svelte';
 
   interface Props {
@@ -49,7 +51,13 @@
     {/each}
   </svelte:element>
 {:else if bloc.type === 'code'}
-  <pre data-ligne={bloc.ligne}>{#if bloc.langage !== ''}<span class="langage">{bloc.langage}</span>{/if}<code>{bloc.texte}</code></pre>
+  <div class="bloc-code" data-ligne={bloc.ligne}>
+    <div class="entete-code">
+      <span class="langage">{nomDuLangage(bloc.langage)}</span>
+      <BoutonCopier texte={bloc.texte} />
+    </div>
+    <pre><code>{bloc.texte}</code></pre>
+  </div>
 {:else if bloc.type === 'separateur'}
   <hr data-ligne={bloc.ligne} />
 {:else}
