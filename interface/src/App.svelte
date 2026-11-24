@@ -17,7 +17,9 @@
     type InfosMiseAJour,
     type Reglages,
   } from './lib/api';
+  import { detailDocument, nomAffiche, tonDocument } from './lib/documents';
   import type { Pastille } from './lib/menu';
+  import { Session } from './lib/session.svelte.js';
   import Bandeau from './lib/composants/Bandeau.svelte';
   import BarreTitre from './lib/composants/BarreTitre.svelte';
   import Bouton from './lib/composants/Bouton.svelte';
@@ -25,15 +27,18 @@
   import FondAnime from './lib/composants/FondAnime.svelte';
   import MenuLateral from './lib/composants/MenuLateral.svelte';
   import DialogueMiseAJour from './dialogues/MiseAJour.svelte';
-  import Accueil from './pages/Accueil.svelte';
+  import DialogueModifications from './dialogues/Modifications.svelte';
+  import Editeur from './pages/Editeur.svelte';
   import Journal from './pages/Journal.svelte';
   import Parametres from './pages/Parametres.svelte';
 
-  type Page = 'accueil' | 'journal' | 'parametres';
+  type Page = 'editeur' | 'journal' | 'parametres';
+  /** Ce qu'on allait faire quand des modifications non enregistrées ont demandé qu'on décide d'abord. */
+  type Suite = 'ouvrir' | 'nouveau' | 'fermer';
 
-  // Les familles de pages : le travail de l'appli d'abord, puis l'appli elle-même. À adapter.
+  // Les familles de pages : le travail de l'appli d'abord, puis l'appli elle-même.
   const familles: { titre: string; pages: { id: Page; titre: string }[] }[] = [
-    { titre: 'Travail', pages: [{ id: 'accueil', titre: 'Accueil' }] },
+    { titre: 'Travail', pages: [{ id: 'editeur', titre: 'Éditeur' }] },
     {
       titre: 'Appli',
       pages: [
@@ -45,23 +50,25 @@
 
   let identite = $state<Identite | null>(null);
   let reglages = $state<Reglages | null>(null);
-  let page = $state<Page>('accueil');
-  let fraction = $state<number | null>(null);
-  let mesure = $state('');
+  let page = $state<Page>('editeur');
   let miseAJour = $state<InfosMiseAJour | null>(null);
   let bandeauRange = $state(false);
   let dialogueMiseAJour = $state(false);
+  let suite = $state<Suite | null>(null);
   let etat = $state('');
   let erreur = $state(false);
+
+  // Le document ouvert : il vit ici, pour que la page puisse changer sans le perdre.
+  const session = new Session((texte, estErreur = false) => signaler(texte, estErreur));
 
   const nomCourt = $derived(identite?.nom.replace(/^Aria\s+/, '') ?? '');
   const famille = $derived(familles.find((f) => f.pages.some((p) => p.id === page)));
   const titrePage = $derived(famille?.pages.find((p) => p.id === page)?.titre ?? '');
   const pastilles: Pastille[] = $derived([
     {
-      nom: 'Disque',
-      detail: fraction === null ? 'à tester' : `${Math.round(fraction * 100)} % libre`,
-      ton: fraction === null ? 'repos' : fraction < 0.1 ? 'attention' : 'actif',
+      nom: 'Document',
+      detail: detailDocument(session.nom, session.modifie),
+      ton: tonDocument(session.nom, session.modifie),
     },
     {
       nom: 'Mises à jour',
@@ -97,9 +104,12 @@
     const arretMiseAJour = ecouter<string>('mise-a-jour', () => {
       void miseAJourDisponible().then((infos) => (miseAJour = infos));
     });
+    // La fenêtre voulait se fermer avec des modifications non enregistrées : Rust l'a retenue et nous le dit.
+    const arretFermeture = ecouter<null>('fermeture-demandee', () => demander('fermer'));
     return () => {
       void arretAllerA.then((f) => f());
       void arretMiseAJour.then((f) => f());
+      void arretFermeture.then((f) => f());
     };
   });
 
@@ -112,7 +122,60 @@
       signaler(messageErreur(e), true);
     }
   }
+
+  async function poursuivre(prochaine: Suite) {
+    suite = null;
+    if (prochaine === 'ouvrir') {
+      await session.ouvrir();
+    } else if (prochaine === 'nouveau') {
+      await session.nouveau();
+    } else {
+      try {
+        await quitter();
+      } catch (e) {
+        signaler(messageErreur(e), true);
+      }
+    }
+  }
+
+  /** Ouvrir, commencer un nouveau document ou fermer : d'abord décider des modifications en cours, s'il y en a. */
+  function demander(prochaine: Suite) {
+    if (session.occupe) return;
+    if (session.modifie) {
+      suite = prochaine;
+      return;
+    }
+    void poursuivre(prochaine);
+  }
+
+  async function enregistrerPuisPoursuivre() {
+    const prochaine = suite;
+    if (prochaine === null) return;
+    if (await session.enregistrer()) await poursuivre(prochaine);
+  }
+
+  function abandonner() {
+    if (suite !== null) void poursuivre(suite);
+  }
+
+  /** Ctrl+S enregistre, Maj+Ctrl+S enregistre sous, Ctrl+O ouvre, Ctrl+N commence un document. */
+  function raccourci(e: KeyboardEvent) {
+    if (!e.ctrlKey || e.altKey || page !== 'editeur' || suite !== null || dialogueMiseAJour) return;
+    const touche = e.key.toLowerCase();
+    if (touche === 's') {
+      e.preventDefault();
+      void (e.shiftKey ? session.enregistrerSous() : session.enregistrer());
+    } else if (touche === 'o') {
+      e.preventDefault();
+      demander('ouvrir');
+    } else if (touche === 'n') {
+      e.preventDefault();
+      demander('nouveau');
+    }
+  }
 </script>
+
+<svelte:window onkeydown={raccourci} />
 
 <div class="fenetre">
   <MenuLateral
@@ -146,8 +209,8 @@
     {/if}
 
     <div class="page">
-      {#if page === 'accueil'}
-        <Accueil {identite} bind:fraction bind:mesure {signaler} />
+      {#if page === 'editeur'}
+        <Editeur {session} ouvrir={() => demander('ouvrir')} nouveau={() => demander('nouveau')} />
       {:else if page === 'journal'}
         <Journal {signaler} />
       {:else if identite && reglages}
@@ -161,6 +224,16 @@
 
 {#if dialogueMiseAJour && miseAJour}
   <DialogueMiseAJour infos={miseAJour} fermer={() => (dialogueMiseAJour = false)} />
+{/if}
+
+{#if suite !== null}
+  <DialogueModifications
+    nom={nomAffiche(session.nom)}
+    occupe={session.occupe}
+    enregistrer={() => void enregistrerPuisPoursuivre()}
+    {abandonner}
+    annuler={() => (suite = null)}
+  />
 {/if}
 
 <style>

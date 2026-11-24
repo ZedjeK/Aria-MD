@@ -4,6 +4,7 @@
 //! `cfg(windows)` et testés par la CI Windows.
 
 pub mod demarrage;
+pub mod documents;
 pub mod donnees;
 pub mod identite;
 pub mod installation;
@@ -42,6 +43,14 @@ pub enum Erreur {
     /// Un nom de secret qui pourrait sortir du dossier des secrets.
     #[error("nom de secret refusé : « {0} » (lettres minuscules, chiffres et tirets, 64 caractères au plus)")]
     NomDeSecret(String),
+
+    /// Un document plus gros que ce que l'éditeur ouvre.
+    #[error("{chemin} fait {taille} octets : l'éditeur n'ouvre pas les fichiers de plus de {max} octets")]
+    DocumentTropGros { chemin: PathBuf, taille: u64, max: u64 },
+
+    /// Un document qui n'est pas du texte UTF-8 : rien n'est converti en silence.
+    #[error("{0} n'est pas un texte UTF-8 : l'éditeur ne l'ouvre pas, pour ne rien abîmer")]
+    DocumentPasUtf8(PathBuf),
 }
 
 impl Erreur {
