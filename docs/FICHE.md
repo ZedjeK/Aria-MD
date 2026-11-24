@@ -7,7 +7,7 @@ jour quand l'appli change. « Prévu » marque ce qui est décidé mais pas enco
 | --- | --- |
 | Nom | Aria MD (dépôt et exe : `Aria-MD`) |
 | Promesse | Éditeur et lecteur Markdown simple : code et aperçu, plan cliquable, raccourcis de mise en forme, 100 % local |
-| Élément orange du logo | un trait de surligneur |
+| Élément orange du logo | un M↓ (la marque Markdown), dessiné dans le creux du A |
 | Fond animé | « Markdown qui se rend » (prévu) : des lignes de Markdown fantômes (`# Titre`, `**gras**`, `==surligné==`) s'écrivent, se « rendent » (le `#` devient un titre, les astérisques disparaissent, le surligné passe à l'orange), restent, puis s'effacent ; aléatoires : le moment, la durée, le contenu de chaque ligne et ce qui se rend ; par défaut 3 à 8 lignes en même temps ; réglages `fond.actif`, `fond.vitesse`, `fond.minimum`, `fond.maximum` dans `reglages.json` ; zone principale seulement, en pause fenêtre cachée, image fixe si Windows demande moins d'animations |
 | Stack | Rust, Tauri 2, Svelte 5 (TypeScript) |
 | Droits administrateur | non |

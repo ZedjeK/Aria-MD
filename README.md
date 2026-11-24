@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" width="160" alt="Logo d'Aria MD : un A néon glitché avec un trait de surligneur orange">
+  <img src="docs/logo.png" width="160" alt="Logo d'Aria MD : un A néon glitché avec un M↓ orange dans son creux">
 </p>
 
 <h1 align="center">Aria MD</h1>
