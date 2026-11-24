@@ -208,7 +208,7 @@
       </Bandeau>
     {/if}
 
-    <div class="page">
+    <div class="page" class:large={page === 'editeur'}>
       {#if page === 'editeur'}
         <Editeur {session} ouvrir={() => demander('ouvrir')} nouveau={() => demander('nouveau')} />
       {:else if page === 'journal'}
@@ -289,6 +289,11 @@
     margin: 0 auto;
     overflow-y: auto;
     padding: 18px 28px 28px;
+  }
+
+  /* L'éditeur a besoin de place pour le texte et sa barre latérale. */
+  .page.large {
+    max-width: 1500px;
   }
 
   .page :global(h1) {
