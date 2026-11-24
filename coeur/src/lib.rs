@@ -1,4 +1,4 @@
-//! Le cœur d'Aria {{NOM}} : ce que toute appli Aria doit tenir, sans rien qui dépende de l'interface.
+//! Le cœur d'Aria MD : ce que toute appli Aria doit tenir, sans rien qui dépende de l'interface.
 //!
 //! Tout ici se teste sur n'importe quel système, sauf les accès à Windows (registre, DPAPI), marqués
 //! `cfg(windows)` et testés par la CI Windows.

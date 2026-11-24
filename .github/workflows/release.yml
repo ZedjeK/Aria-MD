@@ -43,11 +43,6 @@ defaults:
 
 jobs:
   build:
-    # <!-- MODELE:debut -->
-    # Dans le dépôt modèle lui-même : ni exe ni version d'appli à construire. Ses versions se publient à la main
-    # (gh release create) ; ce bloc disparaît des applis créées par init.ps1.
-    if: github.repository != 'ZedjeK/Aria-Modele'
-    # <!-- MODELE:fin -->
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -66,7 +61,17 @@ jobs:
             throw "Le tag $env:GITHUB_REF_NAME pointe sur un commit qui n'est pas dans $env:BRANCHE : aucune release."
           }
 
-      # <<STACK:outils>>
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      - name: Rust (la version de rust-toolchain.toml)
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          # Seule main enregistre le cache ; les PR et les tags le lisent sans pouvoir le remplacer.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Le tag est celui de la version
         if: github.event_name == 'push'
@@ -133,7 +138,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $version = $env:GITHUB_REF_NAME.TrimStart("v")
-          $zip = "release/Aria-{{NOM}}-$version.zip"
+          $zip = "release/Aria-MD-$version.zip"
           $notes = "docs/releases/$env:GITHUB_REF_NAME.md"
           if (-not (Test-Path $notes)) { throw "$notes est introuvable : aucune release sans notes de version." }
-          gh release create $env:GITHUB_REF_NAME $zip "$zip.sha256" --draft --verify-tag --title "Aria {{NOM}} $version" --notes-file $notes
+          gh release create $env:GITHUB_REF_NAME $zip "$zip.sha256" --draft --verify-tag --title "Aria MD $version" --notes-file $notes

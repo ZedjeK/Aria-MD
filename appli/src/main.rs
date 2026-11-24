@@ -1,4 +1,4 @@
-//! Aria {{NOM}} : l'exe Windows. Il prépare le dossier de données, ouvre la fenêtre Tauri et expose à l'interface
+//! Aria MD : l'exe Windows. Il prépare le dossier de données, ouvre la fenêtre Tauri et expose à l'interface
 //! les seules commandes listées dans build.rs.
 
 // Pas de console derrière la fenêtre, sauf en débogage.

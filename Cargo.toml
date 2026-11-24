@@ -1,4 +1,4 @@
-# Espace de travail Rust d'Aria {{NOM}} : le cœur (coeur\, testable partout) et l'appli Windows (appli\).
+# Espace de travail Rust d'Aria MD : le cœur (coeur\, testable partout) et l'appli Windows (appli\).
 #
 # La version de l'appli vit ici, dans [workspace.package], et nulle part ailleurs : tools\version.ps1 la lit, Tauri
 # la reprend pour l'exe, et le tag vX.Y.Z doit lui correspondre.

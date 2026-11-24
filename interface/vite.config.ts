@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-// Interface d'Aria {{NOM}} : Vite compile le Svelte dans dist\, que Tauri embarque dans l'exe.
+// Interface d'Aria MD : Vite compile le Svelte dans dist\, que Tauri embarque dans l'exe.
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig } from 'vite';
 

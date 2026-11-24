@@ -1,5 +1,5 @@
 <!--
-  La fenêtre d'Aria {{NOM}}, sur le modèle d'Aria Studio et d'Aria Cockpit : menu latéral à gauche (marque, familles
+  La fenêtre d'Aria MD, sur le modèle d'Aria Studio et d'Aria Cockpit : menu latéral à gauche (marque, familles
   de pages, Quitter, version), et à droite la zone des pages sur son décor (nuit profonde, grille fine, halos, fond
   animé) : barre de titre avec le chemin et l'état en direct, bandeau de mise à jour, la page, puis la ligne d'état.
 -->

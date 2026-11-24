@@ -1,5 +1,5 @@
 name: "Bug"
-description: "Quelque chose ne marche pas comme prévu dans Aria {{NOM}}."
+description: "Quelque chose ne marche pas comme prévu dans Aria MD."
 labels: ["bug"]
 body:
   - type: markdown
@@ -10,7 +10,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: "Version d'Aria {{NOM}}"
+      label: "Version d'Aria MD"
       description: "Elle est affichée dans l'appli."
       placeholder: "1.2.3"
     validations:
@@ -52,5 +52,5 @@ body:
     id: journal
     attributes:
       label: "Extrait du journal (facultatif)"
-      description: "Les dernières lignes de %USERPROFILE%\\.Aria-{{NOM}}\\journal.json, relues avant d'être collées."
+      description: "Les dernières lignes de %USERPROFILE%\\.Aria-MD\\journal.json, relues avant d'être collées."
       render: json
