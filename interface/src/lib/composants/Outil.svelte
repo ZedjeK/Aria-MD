@@ -11,13 +11,23 @@
     onclick: () => void;
     /** Le libellé montre la mise en forme que le bouton applique. */
     apparence?: 'gras' | 'italique' | 'barre' | 'souligne' | 'surligne' | 'code' | undefined;
+    /** Rien à mettre en forme (la zone de texte est cachée) : le bouton est grisé. */
+    desactive?: boolean | undefined;
     children: Snippet;
   }
 
-  let { titre, onclick, apparence, children }: Props = $props();
+  let { titre, onclick, apparence, desactive = false, children }: Props = $props();
 </script>
 
-<button type="button" class="outil" title={titre} aria-label={titre} onmousedown={(e) => e.preventDefault()} {onclick}>
+<button
+  type="button"
+  class="outil"
+  title={titre}
+  aria-label={titre}
+  disabled={desactive}
+  onmousedown={(e) => e.preventDefault()}
+  {onclick}
+>
   <span
     class:gras={apparence === 'gras'}
     class:italique={apparence === 'italique'}
@@ -53,9 +63,14 @@
     white-space: nowrap;
   }
 
-  .outil:hover span,
+  .outil:hover:not(:disabled) span,
   .outil:focus-visible span {
     background: color-mix(in srgb, var(--cyan) 14%, var(--panneau));
+  }
+
+  .outil:disabled {
+    cursor: default;
+    opacity: 0.45;
   }
 
   .outil .gras {
