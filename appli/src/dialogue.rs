@@ -22,7 +22,11 @@ const FILTRE: &str =
 /// L'erreur de Windows si la boîte n'a pas pu s'ouvrir.
 #[cfg(windows)]
 #[allow(unsafe_code)]
-pub fn choisir(boite: Boite, nom_propose: &str, dossier_initial: Option<&Path>) -> io::Result<Option<PathBuf>> {
+pub fn choisir(
+    boite: Boite,
+    nom_propose: &str,
+    dossier_initial: Option<&Path>,
+) -> io::Result<Option<PathBuf>> {
     use std::ffi::OsString;
     use std::os::windows::ffi::{OsStrExt, OsStringExt};
 
@@ -49,7 +53,9 @@ pub fn choisir(boite: Boite, nom_propose: &str, dossier_initial: Option<&Path>) 
         *case = caractere;
     }
     let drapeaux = match boite {
-        Boite::Ouvrir => OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_NOCHANGEDIR,
+        Boite::Ouvrir => {
+            OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_NOCHANGEDIR
+        }
         Boite::EnregistrerSous => {
             OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_NOCHANGEDIR
         }
@@ -86,7 +92,10 @@ pub fn choisir(boite: Boite, nom_propose: &str, dossier_initial: Option<&Path>) 
         if code.0 == 0 {
             return Ok(None);
         }
-        return Err(io::Error::other(format!("la boîte de dialogue a échoué (code {})", code.0)));
+        return Err(io::Error::other(format!(
+            "la boîte de dialogue a échoué (code {})",
+            code.0
+        )));
     }
     let fin = tampon.iter().position(|&c| c == 0).unwrap_or(tampon.len());
     let texte = tampon.get(..fin).unwrap_or_default();
@@ -98,7 +107,11 @@ pub fn choisir(boite: Boite, nom_propose: &str, dossier_initial: Option<&Path>) 
 /// # Errors
 /// Toujours : Windows seulement.
 #[cfg(not(windows))]
-pub fn choisir(_boite: Boite, _nom_propose: &str, _dossier_initial: Option<&Path>) -> io::Result<Option<PathBuf>> {
+pub fn choisir(
+    _boite: Boite,
+    _nom_propose: &str,
+    _dossier_initial: Option<&Path>,
+) -> io::Result<Option<PathBuf>> {
     Err(io::Error::new(
         io::ErrorKind::Unsupported,
         "boîtes de dialogue : Windows seulement",

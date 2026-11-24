@@ -66,9 +66,10 @@ pub struct Enregistre {
 
 /// Le nom d'un fichier, sans son dossier : c'est tout ce que le journal garde d'un document.
 fn nom_de(chemin: &Path) -> String {
-    chemin
-        .file_name()
-        .map_or_else(|| chemin.display().to_string(), |n| n.to_string_lossy().into_owned())
+    chemin.file_name().map_or_else(
+        || chemin.display().to_string(),
+        |n| n.to_string_lossy().into_owned(),
+    )
 }
 
 /// La boîte de Windows, sur un fil à part : elle peut rester ouverte longtemps.
@@ -121,9 +122,10 @@ pub async fn ouvrir_document(
         return Ok(None);
     };
     let a_lire = chemin.clone();
-    let lecture = tauri::async_runtime::spawn_blocking(move || documents::lire(&a_lire).map_err(|e| e.to_string()))
-        .await
-        .map_err(|e| format!("lecture interrompue : {e}"))??;
+    let lecture =
+        tauri::async_runtime::spawn_blocking(move || documents::lire(&a_lire).map_err(|e| e.to_string()))
+            .await
+            .map_err(|e| format!("lecture interrompue : {e}"))??;
     let nom = nom_de(&chemin);
     journal::consigner(
         &etat.dossier,

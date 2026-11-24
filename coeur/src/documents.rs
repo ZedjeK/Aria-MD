@@ -202,7 +202,10 @@ fn ecrire_sans_risque(chemin: &Path, octets: &[u8]) -> Result<(), Erreur> {
         .unwrap_or_default();
     let provisoire = chemin.with_file_name(format!(".{nom}.aria-md.tmp"));
     let ecriture = (|| {
-        let mut fichier = OpenOptions::new().write(true).create_new(true).open(&provisoire)?;
+        let mut fichier = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&provisoire)?;
         fichier.write_all(octets)?;
         fichier.sync_all()
     })();
@@ -346,7 +349,14 @@ mod tests {
     fn un_fichier_trop_gros_est_refuse() {
         let erreur = decoder(Path::new("a.md"), &[b'a'; 11], 10).unwrap_err();
         assert!(
-            matches!(erreur, Erreur::DocumentTropGros { taille: 11, max: 10, .. }),
+            matches!(
+                erreur,
+                Erreur::DocumentTropGros {
+                    taille: 11,
+                    max: 10,
+                    ..
+                }
+            ),
             "{erreur}"
         );
         assert!(decoder(Path::new("a.md"), &[b'a'; 10], 10).is_ok());
@@ -397,7 +407,8 @@ mod tests {
         let provisoire = temp.path().join(".a.md.aria-md.tmp");
         fs::write(&chemin, "ancien").unwrap();
         fs::write(&provisoire, "à quelqu'un d'autre").unwrap();
-        let erreur = enregistrer(&donnees(temp.path()), &chemin, "nouveau", FinsDeLigne::Lf, false).unwrap_err();
+        let erreur =
+            enregistrer(&donnees(temp.path()), &chemin, "nouveau", FinsDeLigne::Lf, false).unwrap_err();
         assert!(matches!(erreur, Erreur::Fichier { .. }), "{erreur}");
         assert_eq!(fs::read_to_string(&chemin).unwrap(), "ancien");
         assert_eq!(fs::read_to_string(&provisoire).unwrap(), "à quelqu'un d'autre");
@@ -426,10 +437,19 @@ mod tests {
         fs::create_dir(temp.path().join("2026-11-00_10-00-00_dossier")).unwrap();
         elaguer(temp.path(), 10);
         for jour in 1..=2 {
-            assert!(!temp.path().join(format!("2026-11-{jour:02}_10-00-00_a.md")).exists());
+            assert!(
+                !temp
+                    .path()
+                    .join(format!("2026-11-{jour:02}_10-00-00_a.md"))
+                    .exists()
+            );
         }
         for jour in 3..=12 {
-            assert!(temp.path().join(format!("2026-11-{jour:02}_10-00-00_a.md")).exists());
+            assert!(
+                temp.path()
+                    .join(format!("2026-11-{jour:02}_10-00-00_a.md"))
+                    .exists()
+            );
         }
         assert!(temp.path().join("notes.txt").exists());
         assert!(temp.path().join("2026-11-00_10-00-00_dossier").is_dir());
