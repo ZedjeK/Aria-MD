@@ -6,7 +6,8 @@
 
 mod commandes;
 mod demarrage_auto;
-mod disque;
+mod dialogue;
+mod documents;
 mod erreur_fatale;
 mod icone;
 mod installation;
@@ -68,12 +69,17 @@ fn lancer() -> Result<(), String> {
             cache_webview,
         })
         .manage(icone::Presence::default())
+        .manage(documents::Courant::default())
         .manage(mise_a_jour::Disponible::default())
         .invoke_handler(tauri::generate_handler![
             commandes::identite,
             commandes::lire_reglages,
             commandes::enregistrer_reglages,
-            commandes::mesurer_disque,
+            documents::ouvrir_document,
+            documents::enregistrer_document,
+            documents::enregistrer_document_sous,
+            documents::nouveau_document,
+            documents::signaler_modification,
             commandes::lire_journal,
             commandes::quitter,
             demarrage_auto::lire_demarrage_auto,
@@ -130,6 +136,17 @@ pub fn ouvrir_principale(app: &AppHandle, visible: bool) -> tauri::Result<()> {
             if let WindowEvent::CloseRequested { api, .. } = evenement {
                 api.prevent_close();
                 let _ = rangee.hide();
+            }
+        });
+    } else {
+        // Une appli sans icône s'arrête avec sa fenêtre : si le document a des modifications, l'interface demande
+        // d'abord ce qu'on en fait, puis quitte elle-même.
+        let app_fermeture = app.clone();
+        fenetre.on_window_event(move |evenement| {
+            if let WindowEvent::CloseRequested { api, .. } = evenement
+                && documents::retenir_fermeture(&app_fermeture)
+            {
+                api.prevent_close();
             }
         });
     }

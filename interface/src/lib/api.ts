@@ -1,4 +1,4 @@
-// Les commandes Rust que l'interface peut appeler (appli\src\commandes.rs, demarrage_auto.rs, icone.rs), avec
+// Les commandes Rust que l'interface peut appeler (appli\src\commandes.rs, demarrage_auto.rs, documents.rs, icone.rs), avec
 // leurs types. Une commande ajoutée ici doit aussi l'être dans appli\build.rs et dans la capacité de la fenêtre
 // qui l'appelle (appli\capabilities\principale.json, menu.json ou installation.json).
 import { invoke } from '@tauri-apps/api/core';
@@ -28,12 +28,6 @@ export interface Identite {
   dossier: string;
 }
 
-/** Place libre et taille du disque, en octets. */
-export interface Espace {
-  libre: number;
-  total: number;
-}
-
 export const identite = (): Promise<Identite> => invoke<Identite>('identite');
 
 export const lireReglages = (): Promise<Reglages> => invoke<Reglages>('lire_reglages');
@@ -42,7 +36,47 @@ export const lireReglages = (): Promise<Reglages> => invoke<Reglages>('lire_regl
 export const enregistrerReglages = (reglages: Reglages): Promise<Reglages> =>
   invoke<Reglages>('enregistrer_reglages', { reglages });
 
-export const mesurerDisque = (): Promise<Espace> => invoke<Espace>('mesurer_disque');
+/** Les fins de ligne d'un fichier : le texte de l'interface n'a que des « \n », Rust remet celles du fichier. */
+export type FinsDeLigne = 'lf' | 'crlf';
+
+/** Un document ouvert. Le chemin n'est là que pour l'affichage : c'est Rust qui le garde et qui écrit. */
+export interface DocumentOuvert {
+  chemin: string;
+  nom: string;
+  contenu: string;
+  finsDeLigne: FinsDeLigne;
+  bom: boolean;
+  /** Le fichier mélange LF et CRLF : les fins de ligne seront unifiées à l'enregistrement. */
+  melange: boolean;
+  octets: number;
+}
+
+/** Ce qu'un enregistrement a fait. */
+export interface Enregistre {
+  chemin: string;
+  nom: string;
+  octets: number;
+  /** L'ancien contenu a été copié dans sauvegardes\ avant d'être remplacé. */
+  copie: boolean;
+}
+
+/** Rust montre la boîte « Ouvrir » et ouvre le fichier choisi ; null si on annule. */
+export const ouvrirDocument = (): Promise<DocumentOuvert | null> => invoke<DocumentOuvert | null>('ouvrir_document');
+
+/** Enregistre le texte dans le document ouvert, après copie de l'ancien contenu. */
+export const enregistrerDocument = (contenu: string): Promise<Enregistre> =>
+  invoke<Enregistre>('enregistrer_document', { contenu });
+
+/** Rust montre la boîte « Enregistrer sous » et écrit là ; null si on annule. */
+export const enregistrerDocumentSous = (contenu: string): Promise<Enregistre | null> =>
+  invoke<Enregistre | null>('enregistrer_document_sous', { contenu });
+
+/** Repart d'un document vide, sans fichier. */
+export const nouveauDocument = (): Promise<void> => invoke<void>('nouveau_document');
+
+/** Dit à Rust si le document a des modifications non enregistrées : c'est ce qui retient la fermeture. */
+export const signalerModification = (modifie: boolean): Promise<void> =>
+  invoke<void>('signaler_modification', { modifie });
 
 /** Une opération du journal (journal.json). */
 export interface Operation {
@@ -129,10 +163,11 @@ export const installerMiseAJour = (): Promise<void> => invoke<void>('installer_m
 
 /**
  * Événements envoyés par l'appli : « etat-icone » (le menu relit son état), « aller-a » (page ou dialogue à
- * montrer : « parametres », « mise-a-jour »), « mise-a-jour » (version disponible).
+ * montrer : « parametres », « mise-a-jour »), « mise-a-jour » (version disponible), « fermeture-demandee » (la
+ * fenêtre voulait se fermer avec des modifications non enregistrées : l'interface demande quoi en faire).
  */
 export const ecouter = <T>(
-  evenement: 'etat-icone' | 'aller-a' | 'mise-a-jour',
+  evenement: 'etat-icone' | 'aller-a' | 'mise-a-jour' | 'fermeture-demandee',
   rappel: (charge: T) => void,
 ): Promise<UnlistenFn> =>
   listen<T>(evenement, (e) => rappel(e.payload));
