@@ -118,8 +118,12 @@ pub fn relancer(app: &AppHandle, exe: &Path) -> Result<(), String> {
 }
 
 /// Ouvre l'appli sur place. « Ne plus me proposer » est enregistré dans les réglages.
+///
+/// La commande est asynchrone, et c'est voulu : une commande synchrone tourne sur le fil principal, qui est aussi celui
+/// que la création d'une fenêtre attend. La fenêtre de l'appli restait alors vide (`about:blank`) et la proposition
+/// d'installation ne se fermait pas.
 #[tauri::command]
-pub fn lancer_sans_installer(
+pub async fn lancer_sans_installer(
     app: AppHandle,
     etat: State<'_, Etat>,
     ne_plus_proposer: bool,
