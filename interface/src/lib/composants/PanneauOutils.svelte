@@ -9,17 +9,23 @@
 
   interface Props {
     appliquer: (action: Action) => void;
+    /** Pas de zone de texte à mettre en forme : les outils sont grisés. */
+    desactive?: boolean | undefined;
   }
 
-  let { appliquer }: Props = $props();
+  let { appliquer, desactive = false }: Props = $props();
 </script>
+
+{#if desactive}
+  <p class="note">Passe en vue Code ou Double pour mettre le texte en forme : il n'y a pas de texte à modifier dans l'aperçu.</p>
+{/if}
 
 {#each GROUPES as groupe (groupe.titre)}
   <section class="groupe" aria-label={groupe.titre}>
     <h4>{groupe.titre}</h4>
     <div class="outils" class:compact={groupe.compact === true}>
       {#each groupe.outils as outil (outil.action)}
-        <Outil titre={infobulle(outil)} apparence={outil.apparence} onclick={() => appliquer(outil.action)}>
+        <Outil titre={infobulle(outil)} apparence={outil.apparence} {desactive} onclick={() => appliquer(outil.action)}>
           {outil.libelle}
         </Outil>
       {/each}
@@ -28,6 +34,11 @@
 {/each}
 
 <style>
+  .note {
+    margin: 12px 0 0;
+    color: var(--texte-2);
+  }
+
   .groupe {
     margin-top: 14px;
   }

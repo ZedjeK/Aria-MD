@@ -23,7 +23,7 @@ function nettoyer(texte: string): string {
 }
 
 /** Les lignes d'un en-tête YAML (entre deux `---` au tout début) : ce ne sont pas des titres. */
-function finDeLEnTete(lignes: string[]): number {
+export function finDeLEnTete(lignes: string[]): number {
   if ((lignes[0] ?? '').trim() !== '---') return -1;
   for (let i = 1; i < lignes.length; i += 1) {
     const ligne = (lignes[i] ?? '').trim();
