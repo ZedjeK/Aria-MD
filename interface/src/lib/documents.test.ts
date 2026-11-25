@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   SANS_TITRE,
+  brouillonUtile,
   detailDocument,
   estModifie,
   libelleFins,
   nomAffiche,
   nombreDeLignes,
+  origineBrouillon,
   tonDocument,
 } from './documents';
 
@@ -47,5 +49,23 @@ describe('documents', () => {
     expect(tonDocument('notes.md', false)).toBe('actif');
     expect(tonDocument('notes.md', true)).toBe('attention');
     expect(tonDocument(null, true)).toBe('attention');
+  });
+});
+
+describe('brouillon', () => {
+  it('ne propose pas un texte vide ou fait d’espaces', () => {
+    expect(brouillonUtile('')).toBe(false);
+    expect(brouillonUtile(' \n\t ')).toBe(false);
+    expect(brouillonUtile('a')).toBe(true);
+  });
+
+  it('dit d’où vient le brouillon et quand il a été écrit', () => {
+    expect(origineBrouillon('notes.md', '2026-11-25 10:02:41')).toBe('notes.md, écrit le 2026-11-25 à 10:02');
+    expect(origineBrouillon(null, '2026-11-25 10:02:41')).toBe('Document sans fichier, écrit le 2026-11-25 à 10:02');
+    expect(origineBrouillon('', '2026-11-25 10:02:41')).toBe('Document sans fichier, écrit le 2026-11-25 à 10:02');
+  });
+
+  it('garde la date telle quelle si elle n’a pas la forme attendue', () => {
+    expect(origineBrouillon('a.md', 'hier')).toBe('a.md, écrit hier');
   });
 });

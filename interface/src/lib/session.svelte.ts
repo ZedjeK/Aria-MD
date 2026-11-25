@@ -2,20 +2,26 @@
 // Rust garde le chemin du fichier et fait toute l'écriture (boîtes de Windows, copie avant remplacement) : ici,
 // seulement le texte et son état.
 import {
+  effacerBrouillon,
+  enregistrerBrouillon,
   enregistrerDocument,
   enregistrerDocumentSous,
   messageErreur,
   nouveauDocument,
   ouvrirDocument,
   signalerModification,
+  type BrouillonRetrouve,
   type DocumentOuvert,
   type Enregistre,
   type FinsDeLigne,
 } from './api';
-import { estModifie } from './documents';
+import { estModifie, origineBrouillon } from './documents';
 import { octetsLisibles } from './jauge';
 
 type Signaler = (texte: string, erreur?: boolean) => void;
+
+/** Le brouillon s'écrit au plus une fois par ce délai (en millisecondes) tant que le texte est modifié. */
+const DELAI_BROUILLON = 2000;
 
 export class Session {
   /** Le texte à l'écran. */
@@ -36,6 +42,13 @@ export class Session {
   private dernierSignal = false;
   private readonly signaler: Signaler;
 
+  /** Le brouillon : une copie de sûreté du texte modifié, pour le retrouver si l'appli s'arrête avant l'enregistrement. */
+  private minuterieBrouillon: ReturnType<typeof setTimeout> | undefined;
+  private brouillonSurDisque = false;
+  private echecBrouillonSignale = false;
+  /** Les écritures et effacements du brouillon se font l'un après l'autre : un effacement n'est jamais doublé par une écriture en retard. */
+  private suiteBrouillon: Promise<void> = Promise.resolve();
+
   constructor(signaler: Signaler) {
     this.signaler = signaler;
   }
@@ -44,6 +57,76 @@ export class Session {
   changer(contenu: string): void {
     this.contenu = contenu;
     this.relayer();
+    this.suivreBrouillon();
+  }
+
+  private enfiler(tache: () => Promise<void>): Promise<void> {
+    const suite = this.suiteBrouillon.then(tache);
+    this.suiteBrouillon = suite.catch(() => undefined);
+    return suite;
+  }
+
+  /** Le brouillon suit le texte : écrit au plus toutes les deux secondes tant qu'il est modifié, effacé dès qu'il est propre. */
+  private suivreBrouillon(): void {
+    if (this.modifie) {
+      if (this.minuterieBrouillon !== undefined) return;
+      this.minuterieBrouillon = setTimeout(() => {
+        this.minuterieBrouillon = undefined;
+        this.ecrireBrouillon();
+      }, DELAI_BROUILLON);
+      return;
+    }
+    clearTimeout(this.minuterieBrouillon);
+    this.minuterieBrouillon = undefined;
+    if (this.brouillonSurDisque) void this.oublierBrouillon();
+  }
+
+  private ecrireBrouillon(): void {
+    if (!this.modifie) return;
+    const contenu = this.contenu;
+    // Posé avant l'écriture : si le document devient propre pendant qu'elle part, l'effacement qui suit la rattrape.
+    this.brouillonSurDisque = true;
+    void this.enfiler(async () => {
+      try {
+        await enregistrerBrouillon(contenu);
+        this.echecBrouillonSignale = false;
+      } catch (e) {
+        // Une seule alerte : un disque plein ne doit pas écrire dans la ligne d'état toutes les deux secondes.
+        if (!this.echecBrouillonSignale) {
+          this.echecBrouillonSignale = true;
+          this.signaler(`Le brouillon n'est pas gardé : ${messageErreur(e)}`, true);
+        }
+      }
+    });
+  }
+
+  /** Efface le brouillon : le document est enregistré, abandonné ou remplacé. Rend la main quand c'est fait. */
+  async oublierBrouillon(): Promise<void> {
+    clearTimeout(this.minuterieBrouillon);
+    this.minuterieBrouillon = undefined;
+    this.brouillonSurDisque = false;
+    await this.enfiler(async () => {
+      try {
+        await effacerBrouillon();
+      } catch (e) {
+        this.signaler(`Le brouillon n'a pas pu être effacé : ${messageErreur(e)}`, true);
+      }
+    });
+  }
+
+  /** Reprend le texte d'un brouillon retrouvé au lancement : un document sans fichier, modifié, à enregistrer sous un nom. */
+  reprendre(brouillon: BrouillonRetrouve): void {
+    this.contenu = brouillon.contenu;
+    this.original = '';
+    this.chemin = null;
+    this.nom = null;
+    this.finsDeLigne = 'lf';
+    this.melange = false;
+    this.relayer();
+    this.suivreBrouillon();
+    this.signaler(
+      `Brouillon récupéré (${origineBrouillon(brouillon.nom, brouillon.date)}). Enregistre-le avec « Enregistrer sous ».`,
+    );
   }
 
   /** Prévient Rust quand le document passe de « propre » à « modifié » ou l'inverse : c'est ce qui retient la fermeture. */
@@ -65,6 +148,7 @@ export class Session {
     this.melange = ouvert.melange;
     // Rust a remis « modifié » à faux en ouvrant le fichier.
     this.dernierSignal = false;
+    this.suivreBrouillon();
   }
 
   /** La boîte « Ouvrir » ; true si un document a été ouvert. Les modifications en cours sont déjà réglées. */
@@ -99,6 +183,7 @@ export class Session {
       this.finsDeLigne = 'lf';
       this.melange = false;
       this.dernierSignal = false;
+      this.suivreBrouillon();
       this.signaler('Nouveau document.');
       return true;
     } catch (e) {
@@ -152,6 +237,7 @@ export class Session {
     // Rust écrit avec des fins de ligne uniformes : le document n'est plus « mélangé ».
     this.melange = false;
     this.relayer();
+    this.suivreBrouillon();
     const copie = bilan.copie ? ', ancien contenu gardé dans les sauvegardes' : '';
     this.signaler(`Enregistré : ${bilan.nom} (${octetsLisibles(bilan.octets)})${copie}.`);
   }

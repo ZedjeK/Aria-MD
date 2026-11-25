@@ -78,6 +78,26 @@ export const nouveauDocument = (): Promise<void> => invoke<void>('nouveau_docume
 export const signalerModification = (modifie: boolean): Promise<void> =>
   invoke<void>('signaler_modification', { modifie });
 
+/** Un brouillon laissé par un arrêt avant l'enregistrement. */
+export interface BrouillonRetrouve {
+  contenu: string;
+  /** Le nom du fichier dont il vient ; null pour un document qui n'en avait pas. */
+  nom: string | null;
+  /** Quand il a été écrit, « AAAA-MM-JJ HH:MM:SS ». */
+  date: string;
+}
+
+/** Garde le texte en brouillon, à la place du précédent. Rust y ajoute le nom du fichier : le chemin ne passe pas par ici. */
+export const enregistrerBrouillon = (contenu: string): Promise<void> =>
+  invoke<void>('enregistrer_brouillon', { contenu });
+
+/** Le brouillon laissé par un arrêt avant l'enregistrement ; null s'il n'y en a pas. */
+export const lireBrouillon = (): Promise<BrouillonRetrouve | null> =>
+  invoke<BrouillonRetrouve | null>('lire_brouillon');
+
+/** Efface le brouillon : le document est enregistré, abandonné ou remplacé. */
+export const effacerBrouillon = (): Promise<void> => invoke<void>('effacer_brouillon');
+
 /** Une opération du journal (journal.json). */
 export interface Operation {
   /** RFC 3339, heure locale. */

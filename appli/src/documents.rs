@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use aria_coeur::documents::{self, FinsDeLigne};
-use aria_coeur::{Dossier, journal};
+use aria_coeur::{Dossier, brouillon, journal};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -206,6 +206,64 @@ pub fn nouveau_document(courant: State<'_, Courant>) {
 #[tauri::command]
 pub fn signaler_modification(courant: State<'_, Courant>, modifie: bool) {
     courant.modifie.store(modifie, Ordering::SeqCst);
+}
+
+/// Un brouillon retrouvé, tel que l'interface l'affiche.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BrouillonRetrouve {
+    contenu: String,
+    /// Le nom du fichier dont il vient ; rien pour un document qui n'en avait pas.
+    nom: Option<String>,
+    date: String,
+}
+
+/// Garde le texte en brouillon, à la place du précédent. Le nom du fichier vient de ce que Rust sait du document ouvert :
+/// l'interface n'envoie que le texte.
+#[tauri::command]
+pub async fn enregistrer_brouillon(
+    etat: State<'_, Etat>,
+    courant: State<'_, Courant>,
+    contenu: String,
+) -> Result<(), String> {
+    let nom = courant.ouvert().as_ref().map(|o| nom_de(&o.chemin));
+    let dossier = etat.dossier.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        brouillon::ecrire(&dossier, &contenu, nom.as_deref()).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| format!("écriture du brouillon interrompue : {e}"))?
+}
+
+/// Le brouillon laissé par un arrêt avant l'enregistrement, s'il y en a un.
+#[tauri::command]
+pub async fn lire_brouillon(etat: State<'_, Etat>) -> Result<Option<BrouillonRetrouve>, String> {
+    let dossier = etat.dossier.clone();
+    let trouve =
+        tauri::async_runtime::spawn_blocking(move || brouillon::lire(&dossier).map_err(|e| e.to_string()))
+            .await
+            .map_err(|e| format!("lecture du brouillon interrompue : {e}"))??;
+    Ok(trouve.map(|b| {
+        journal::consigner(
+            &etat.dossier,
+            "document",
+            &format!("brouillon retrouvé ({})", b.date),
+        );
+        BrouillonRetrouve {
+            contenu: b.contenu,
+            nom: b.nom,
+            date: b.date,
+        }
+    }))
+}
+
+/// Efface le brouillon : le document est enregistré, abandonné ou remplacé.
+#[tauri::command]
+pub async fn effacer_brouillon(etat: State<'_, Etat>) -> Result<(), String> {
+    let dossier = etat.dossier.clone();
+    tauri::async_runtime::spawn_blocking(move || brouillon::effacer(&dossier).map_err(|e| e.to_string()))
+        .await
+        .map_err(|e| format!("suppression du brouillon interrompue : {e}"))?
 }
 
 /// Faut-il retenir la fermeture de la fenêtre ? Oui si le document a des modifications : l'interface propose alors

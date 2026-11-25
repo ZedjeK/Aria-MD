@@ -14,6 +14,18 @@ export function estModifie(contenu: string, original: string): boolean {
   return contenu !== original;
 }
 
+/** Un brouillon vaut d'être proposé s'il contient quelque chose : un texte tout effacé ne se récupère pas. */
+export function brouillonUtile(contenu: string): boolean {
+  return contenu.trim() !== '';
+}
+
+/** La phrase qui dit d'où vient un brouillon : « notes.md, écrit le 2026-11-25 à 10:02 », ou sans nom pour un document sans fichier. */
+export function origineBrouillon(nom: string | null, date: string): string {
+  const [jour, heure] = date.split(' ');
+  const quand = jour !== undefined && heure !== undefined ? `le ${jour} à ${heure.slice(0, 5)}` : date;
+  return nom === null || nom === '' ? `Document sans fichier, écrit ${quand}` : `${nom}, écrit ${quand}`;
+}
+
 /** Le nombre de lignes d'un texte : un saut de ligne en ajoute une, et un texte vide en compte une. */
 export function nombreDeLignes(contenu: string): number {
   let lignes = 1;
