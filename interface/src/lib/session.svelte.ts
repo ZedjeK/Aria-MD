@@ -122,6 +122,8 @@ export class Session {
     this.nom = null;
     this.finsDeLigne = 'lf';
     this.melange = false;
+    // Le brouillon est déjà sur le disque : s'il est abandonné avant la prochaine écriture, il doit quand même s'effacer.
+    this.brouillonSurDisque = true;
     this.relayer();
     this.suivreBrouillon();
     this.signaler(
