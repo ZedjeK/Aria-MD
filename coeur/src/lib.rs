@@ -3,6 +3,7 @@
 //! Tout ici se teste sur n'importe quel système, sauf les accès à Windows (registre, DPAPI), marqués
 //! `cfg(windows)` et testés par la CI Windows.
 
+pub mod brouillon;
 pub mod demarrage;
 pub mod documents;
 pub mod donnees;
@@ -51,6 +52,10 @@ pub enum Erreur {
     /// Un document qui n'est pas du texte UTF-8 : rien n'est converti en silence.
     #[error("{0} n'est pas un texte UTF-8 : l'éditeur ne l'ouvre pas, pour ne rien abîmer")]
     DocumentPasUtf8(PathBuf),
+
+    /// Un texte trop gros pour être gardé en brouillon : le brouillon précédent reste en place.
+    #[error("le texte fait {taille} octets : au-delà de {max} octets, il n'est pas gardé en brouillon")]
+    BrouillonTropGros { taille: u64, max: u64 },
 }
 
 impl Erreur {

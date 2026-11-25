@@ -8,6 +8,7 @@ sont dans `docs/releases/`.
 ### Ajouté
 
 - Première version d'Aria MD.
+- Brouillon : le texte modifié est gardé en brouillon (au plus toutes les deux secondes, dans sauvegardes\brouillon\), effacé dès que le document est enregistré, abandonné ou remplacé. Si l'appli s'arrête avant l'enregistrement, le lancement suivant propose de récupérer le texte (comme un document sans fichier, à enregistrer sous un nom) ou de supprimer le brouillon. Le fichier d'origine n'est jamais touché.
 - Éditeur : ouvrir, modifier et enregistrer un fichier Markdown (UTF-8, fins de ligne conservées), avec copie datée de l'ancien contenu avant chaque remplacement et confirmation avant de fermer avec des modifications non enregistrées.
 - Barre latérale de l'éditeur : onglet Raccourcis (titres, gras, italique, barré, surligné, souligné, code, listes, citation, bloc de code, lien, image, tableau, séparateur, avec leurs raccourcis clavier) et onglet Plan (les titres du document, cliquables).
 - Aperçu Markdown et double vue : trois vues (Code, Aperçu, Double), aperçu mis à jour pendant la frappe, défilement lié, clic dans le Plan qui amène le code et l'aperçu sur le titre, barre latérale repliable. L'aperçu ne charge ni image ni adresse et n'affiche pas de HTML.

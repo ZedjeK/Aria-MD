@@ -9,15 +9,17 @@
     ecouter,
     enregistrerReglages,
     identite as lireIdentite,
+    lireBrouillon,
     lireReglages,
     messageErreur,
     miseAJourDisponible,
     quitter,
+    type BrouillonRetrouve,
     type Identite,
     type InfosMiseAJour,
     type Reglages,
   } from './lib/api';
-  import { detailDocument, nomAffiche, tonDocument } from './lib/documents';
+  import { brouillonUtile, detailDocument, nomAffiche, tonDocument } from './lib/documents';
   import type { Pastille } from './lib/menu';
   import { Session } from './lib/session.svelte.js';
   import Bandeau from './lib/composants/Bandeau.svelte';
@@ -26,6 +28,7 @@
   import EtatDirect from './lib/composants/EtatDirect.svelte';
   import FondAnime from './lib/composants/FondAnime.svelte';
   import MenuLateral from './lib/composants/MenuLateral.svelte';
+  import DialogueBrouillon from './dialogues/Brouillon.svelte';
   import DialogueMiseAJour from './dialogues/MiseAJour.svelte';
   import DialogueModifications from './dialogues/Modifications.svelte';
   import Editeur from './pages/Editeur.svelte';
@@ -55,6 +58,8 @@
   let bandeauRange = $state(false);
   let dialogueMiseAJour = $state(false);
   let suite = $state<Suite | null>(null);
+  /** Le brouillon laissé par un arrêt avant l'enregistrement, proposé au lancement. */
+  let brouillonRetrouve = $state<BrouillonRetrouve | null>(null);
   let etat = $state('');
   let erreur = $state(false);
 
@@ -94,6 +99,16 @@
       } catch (e) {
         signaler(`Démarrage incomplet : ${messageErreur(e)}`, true);
       }
+      try {
+        const brouillon = await lireBrouillon();
+        if (brouillon !== null) {
+          // Un texte tout effacé ne vaut pas d'être proposé : le brouillon s'en va sans bruit.
+          if (brouillonUtile(brouillon.contenu)) brouillonRetrouve = brouillon;
+          else await session.oublierBrouillon();
+        }
+      } catch (e) {
+        signaler(`Le brouillon n'a pas pu être lu : ${messageErreur(e)}`, true);
+      }
     })();
     // « Paramètres » et « Voir la mise à jour » dans le menu de l'icône.
     const arretAllerA = ecouter<string>('aller-a', (cible) => {
@@ -130,6 +145,8 @@
     } else if (prochaine === 'nouveau') {
       await session.nouveau();
     } else {
+      // On quitte en ayant décidé de ces modifications : le brouillon ne doit pas revenir au prochain lancement.
+      await session.oublierBrouillon();
       try {
         await quitter();
       } catch (e) {
@@ -158,9 +175,25 @@
     if (suite !== null) void poursuivre(suite);
   }
 
+  /** « Récupérer » : le texte du brouillon devient le document, sans fichier, à enregistrer sous un nom. */
+  function recupererBrouillon() {
+    if (brouillonRetrouve === null) return;
+    session.reprendre(brouillonRetrouve);
+    brouillonRetrouve = null;
+    page = 'editeur';
+  }
+
+  async function supprimerBrouillon() {
+    brouillonRetrouve = null;
+    await session.oublierBrouillon();
+    signaler('Brouillon supprimé.');
+  }
+
   /** Ctrl+S enregistre, Maj+Ctrl+S enregistre sous, Ctrl+O ouvre, Ctrl+N commence un document. */
   function raccourci(e: KeyboardEvent) {
-    if (!e.ctrlKey || e.altKey || page !== 'editeur' || suite !== null || dialogueMiseAJour) return;
+    if (!e.ctrlKey || e.altKey || page !== 'editeur' || suite !== null || dialogueMiseAJour || brouillonRetrouve !== null) {
+      return;
+    }
     const touche = e.key.toLowerCase();
     if (touche === 's') {
       e.preventDefault();
@@ -224,6 +257,14 @@
 
 {#if dialogueMiseAJour && miseAJour}
   <DialogueMiseAJour infos={miseAJour} fermer={() => (dialogueMiseAJour = false)} />
+{/if}
+
+{#if brouillonRetrouve !== null}
+  <DialogueBrouillon
+    brouillon={brouillonRetrouve}
+    recuperer={recupererBrouillon}
+    supprimer={() => void supprimerBrouillon()}
+  />
 {/if}
 
 {#if suite !== null}
