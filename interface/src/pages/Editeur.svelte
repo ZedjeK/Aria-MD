@@ -41,7 +41,7 @@
   const commentaires: Record<string, string> = {
     raccourcis:
       'Chaque bouton agit sur la sélection, ou sur le mot ou la ligne du curseur ; le même raccourci retire la mise en forme. Ctrl+Z annule.',
-    plan: 'Un clic sur un titre place le curseur dessus et amène le code et l’aperçu jusque-là. Le titre sous lequel tu écris est marqué.',
+    plan: 'Un clic sur un titre place le curseur dessus et amène le code et l’aperçu jusque-là. Le titre sous lequel tu écris est marqué. Cherche un titre, replie ses sous-titres, ou numérote le plan.',
   };
 
   let zone = $state<HTMLTextAreaElement | null>(null);
@@ -50,6 +50,10 @@
   let vue = $state('double');
   let onglet = $state('raccourcis');
   let barreOuverte = $state(true);
+  /** Le plan garde sa recherche, ses replis et ses numéros quand on passe à l'autre onglet. */
+  let recherchePlan = $state('');
+  let repliesPlan = $state<ReadonlySet<string>>(new Set());
+  let numerotePlan = $state(false);
   /** La ligne du curseur, pour marquer le titre sous lequel on écrit. */
   let ligneCurseur = $state(0);
   /** Le texte que l'aperçu montre : il suit le texte avec un léger retard, pour ne pas ramer pendant la frappe. */
@@ -211,7 +215,14 @@
         {#if onglet === 'raccourcis'}
           <PanneauOutils {appliquer} {blocCodeEn} desactive={vue === 'apercu'} />
         {:else}
-          <PanneauPlan {titres} {courant} {aller} />
+          <PanneauPlan
+            {titres}
+            {courant}
+            {aller}
+            bind:recherche={recherchePlan}
+            bind:replies={repliesPlan}
+            bind:numerote={numerotePlan}
+          />
         {/if}
       </Panneau>
     </aside>
