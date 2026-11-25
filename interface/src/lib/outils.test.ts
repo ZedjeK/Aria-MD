@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { raccourciVersAction, type Action } from './formatage';
-import { GROUPES, infobulle } from './outils';
+import { nomDuLangage } from './langages';
+import { GROUPES, LANGAGES_DE_BLOC, infobulle } from './outils';
 
 const TOUTES_LES_ACTIONS: Action[] = [
   'titre0',
@@ -59,6 +60,18 @@ describe('outils de la barre latérale', () => {
   it('annoncent des raccourcis que le clavier reconnaît, et pour la même action', () => {
     for (const outil of outils.filter((o) => o.raccourci !== '')) {
       expect(raccourciVersAction(frappeDe(outil.raccourci)), outil.raccourci).toBe(outil.action);
+    }
+  });
+
+  it('proposent des langages de bloc connus de l’aperçu, sans doublon, « sans langage » en premier', () => {
+    expect(LANGAGES_DE_BLOC[0]).toEqual({ libelle: 'Sans langage', langage: '' });
+    const libelles = LANGAGES_DE_BLOC.map((l) => l.libelle);
+    const noms = LANGAGES_DE_BLOC.map((l) => l.langage);
+    expect(new Set(libelles).size).toBe(libelles.length);
+    expect(new Set(noms).size).toBe(noms.length);
+    for (const { langage } of LANGAGES_DE_BLOC.slice(1)) {
+      // Écrit tel quel, l'aperçu ne doit pas retomber sur le nom brut : il connaît chacun de ces noms.
+      expect(nomDuLangage(langage), langage).not.toBe(langage);
     }
   });
 

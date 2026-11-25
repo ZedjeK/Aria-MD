@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appliquer, appliquerEdition, raccourciVersAction, type Action } from './formatage';
+import { appliquer, appliquerEdition, blocDeCodeEn, raccourciVersAction, type Action } from './formatage';
 
 /** Applique une action, et rend le texte obtenu avec ce qui est sélectionné ensuite. */
 function faire(action: Action, texte: string, debut: number, fin = debut): { texte: string; selection: string } {
@@ -162,6 +162,83 @@ describe('blocs et insertions', () => {
   it('écrit une image', () => {
     expect(faire('image', '', 0)).toEqual({ texte: '![description](adresse)', selection: 'description' });
     expect(faire('image', 'photo', 0, 5)).toEqual({ texte: '![photo](adresse)', selection: 'adresse' });
+  });
+});
+
+describe('bloc de code par langage', () => {
+  /** Pose un bloc dans ce langage, et rend le texte obtenu avec ce qui est sélectionné ensuite. */
+  function bloc(langage: string, texte: string, debut: number, fin = debut): { texte: string; selection: string } {
+    const edition = blocDeCodeEn(langage, texte, debut, fin);
+    const nouveau = appliquerEdition(texte, edition);
+    return { texte: nouveau, selection: nouveau.slice(edition.debut, edition.fin) };
+  }
+
+  it('ouvre un bloc vide dans ce langage, le curseur dedans', () => {
+    const edition = blocDeCodeEn('python', '', 0, 0);
+    expect(appliquerEdition('', edition)).toBe('```python\n\n```');
+    expect(edition.debut).toBe('```python\n'.length);
+    expect(edition.fin).toBe(edition.debut);
+  });
+
+  it('entoure les lignes sélectionnées et les garde sélectionnées', () => {
+    expect(bloc('js', 'a\nb', 0, 3)).toEqual({ texte: '```js\na\nb\n```', selection: 'a\nb' });
+  });
+
+  it('pose un bloc sans langage', () => {
+    expect(bloc('', 'a', 0, 1)).toEqual({ texte: '```\na\n```', selection: 'a' });
+  });
+
+  it('change le langage d’un bloc quand la sélection le couvre en entier', () => {
+    const texte = '```js\nlet a = 1;\n```';
+    expect(bloc('ts', texte, 0, texte.length).texte).toBe('```ts\nlet a = 1;\n```');
+  });
+
+  it('change le langage d’un bloc quand le curseur est dans son code', () => {
+    const texte = 'avant\n\n```\nx = 1\n```\n\naprès';
+    const resultat = bloc('python', texte, texte.indexOf('x = 1') + 2);
+    expect(resultat.texte).toBe('avant\n\n```python\nx = 1\n```\n\naprès');
+    // Le curseur reste dans le code, décalé de la longueur du langage ajouté.
+    const place = texte.indexOf('x = 1') + 2 + 'python'.length;
+    expect(blocDeCodeEn('python', texte, texte.indexOf('x = 1') + 2, texte.indexOf('x = 1') + 2).debut).toBe(place);
+  });
+
+  it('retire le langage avec « sans langage », et ne touche ni au code ni aux autres blocs', () => {
+    const texte = '```rust\nfn a() {}\n```\n\n```js\nb\n```';
+    expect(bloc('', texte, 2).texte).toBe('```\nfn a() {}\n```\n\n```js\nb\n```');
+    expect(bloc('', texte, texte.indexOf('b\n```')).texte).toBe('```rust\nfn a() {}\n```\n\n```\nb\n```');
+  });
+
+  it('ne fait rien quand le bloc a déjà ce langage', () => {
+    const texte = '```js\na\n```';
+    const edition = blocDeCodeEn('js', texte, 7, 7);
+    expect(edition.par).toBe('');
+    expect(appliquerEdition(texte, edition)).toBe(texte);
+  });
+
+  it('garde les guillemets d’un bloc long et son retrait', () => {
+    const texte = '  ````\n```\ndedans\n```\n````';
+    expect(bloc('md', texte, 10).texte).toBe('  ````md\n```\ndedans\n```\n````');
+  });
+
+  it('suit un bloc ouvert avec des tildes, et un bloc jamais refermé', () => {
+    expect(bloc('sql', '~~~\nselect 1\n~~~', 6).texte).toBe('~~~sql\nselect 1\n~~~');
+    expect(bloc('go', '```\nfunc a() {}', 6).texte).toBe('```go\nfunc a() {}');
+  });
+
+  it('pose un nouveau bloc à côté d’un bloc existant quand la sélection ne le touche pas', () => {
+    const texte = '```js\na\n```\n\ntexte';
+    expect(bloc('python', texte, texte.length).texte).toBe('```js\na\n```\n\n```python\ntexte\n```');
+  });
+
+  it('ne prend pas un code en ligne de trois guillemets pour l’ouverture d’un bloc', () => {
+    expect(bloc('js', '```code``` seul', 3).texte).toBe('```js\n```code``` seul\n```');
+  });
+
+  it('ne prend pas un bloc voisin quand la sélection ne fait que le frôler', () => {
+    const texte = 'a\n```\nb\n```\nc';
+    // Une sélection qui s'arrête au début de la ligne d'ouverture n'est pas dans le bloc : « a » est entouré, lui seul.
+    const edition = blocDeCodeEn('js', texte, 0, 2);
+    expect(appliquerEdition(texte, edition)).toBe('```js\na\n```\n```\nb\n```\nc');
   });
 });
 

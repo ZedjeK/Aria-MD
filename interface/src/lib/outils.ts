@@ -70,6 +70,38 @@ export const GROUPES: GroupeOutils[] = [
   },
 ];
 
+/** Un langage proposé pour un bloc de code : ce qui est écrit sur le bouton, et ce qui s'écrit après les trois guillemets. */
+export interface LangageDeBloc {
+  libelle: string;
+  langage: string;
+}
+
+/**
+ * Les langages les plus courants, un clic chacun. Le premier retire le langage. Ce qui est écrit après les guillemets est
+ * un nom que l'aperçu sait afficher (langages.ts) ; n'importe quel autre langage se tape à la main.
+ */
+export const LANGAGES_DE_BLOC: LangageDeBloc[] = [
+  { libelle: 'Sans langage', langage: '' },
+  { libelle: 'JavaScript', langage: 'js' },
+  { libelle: 'TypeScript', langage: 'ts' },
+  { libelle: 'Python', langage: 'python' },
+  { libelle: 'Rust', langage: 'rust' },
+  { libelle: 'PowerShell', langage: 'powershell' },
+  { libelle: 'Bash', langage: 'bash' },
+  { libelle: 'HTML', langage: 'html' },
+  { libelle: 'CSS', langage: 'css' },
+  { libelle: 'JSON', langage: 'json' },
+  { libelle: 'YAML', langage: 'yaml' },
+  { libelle: 'SQL', langage: 'sql' },
+  { libelle: 'C#', langage: 'csharp' },
+  { libelle: 'C++', langage: 'cpp' },
+  { libelle: 'Java', langage: 'java' },
+  { libelle: 'Go', langage: 'go' },
+  { libelle: 'PHP', langage: 'php' },
+  { libelle: 'Markdown', langage: 'md' },
+  { libelle: 'Diff', langage: 'diff' },
+];
+
 /** L'infobulle d'un outil : sa description, puis son raccourci s'il en a un. */
 export function infobulle(outil: Outil): string {
   return outil.raccourci === '' ? outil.description : `${outil.description} (${outil.raccourci})`;
