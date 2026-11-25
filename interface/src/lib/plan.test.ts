@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { extraireTitres, ligneDuCurseur, titreCourant, type Titre } from './plan';
+import {
+  aDesSousTitres,
+  cleDeTitre,
+  clesRepliables,
+  extraireTitres,
+  indicesVisibles,
+  ligneDuCurseur,
+  normaliser,
+  numeros,
+  titreCourant,
+  type Titre,
+} from './plan';
 
 const textes = (contenu: string): string[] => extraireTitres(contenu).map((t) => t.texte);
 
@@ -69,5 +80,70 @@ describe('plan du document', () => {
     expect([0, 3, 4, 9].map((ligne) => titreCourant(titres, ligne))).toEqual([0, 0, 1, 2]);
     expect(titreCourant([titre(2)], 1)).toBe(-1);
     expect(titreCourant([], 3)).toBe(-1);
+  });
+});
+
+describe('plan enrichi : numéros, replis et recherche', () => {
+  const doc = '# A\n## B\n### C\n## D\n# E\n## F\n';
+  const titres = extraireTitres(doc);
+
+  it('numérote selon la place dans l’arbre', () => {
+    expect(numeros(titres)).toEqual(['1', '1.1', '1.1.1', '1.2', '2', '2.1']);
+  });
+
+  it('ne laisse pas de trou quand un niveau est sauté', () => {
+    expect(numeros(extraireTitres('# A\n### B\n## C\n# D\n#### E'))).toEqual(['1', '1.1', '1.2', '2', '2.1']);
+    expect(numeros(extraireTitres('## A\n# B\n## C'))).toEqual(['1', '2', '2.1']);
+  });
+
+  it('repart de 1 sous chaque nouveau parent', () => {
+    expect(numeros(extraireTitres('# A\n## a\n## b\n# B\n## c'))).toEqual(['1', '1.1', '1.2', '2', '2.1']);
+  });
+
+  it('sait quels titres ont des sous-titres', () => {
+    expect(titres.map((_, i) => aDesSousTitres(titres, i))).toEqual([true, true, false, false, true, false]);
+  });
+
+  it('donne une clé qui distingue deux titres identiques', () => {
+    const doubles = extraireTitres('# A\n## Notes\n# B\n## Notes');
+    expect(cleDeTitre(doubles, 1)).not.toBe(cleDeTitre(doubles, 3));
+    expect(cleDeTitre(doubles, 5)).toBe('');
+  });
+
+  it('garde la clé d’un titre quand on écrit au-dessus', () => {
+    const avant = extraireTitres('# A\n## Notes');
+    const apres = extraireTitres('# Nouveau\n\ntexte\n\n# A\n## Notes');
+    expect(cleDeTitre(avant, 1)).toBe(cleDeTitre(apres, 2));
+  });
+
+  it('liste les clés des titres repliables', () => {
+    expect(clesRepliables(titres)).toEqual([cleDeTitre(titres, 0), cleDeTitre(titres, 1), cleDeTitre(titres, 4)]);
+  });
+
+  it('montre tous les titres quand rien n’est replié', () => {
+    expect(indicesVisibles(titres, new Set(), '')).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it('cache les sous-titres d’un titre replié, jusqu’au prochain de son niveau ou plus haut', () => {
+    expect(indicesVisibles(titres, new Set([cleDeTitre(titres, 1)]), '')).toEqual([0, 1, 3, 4, 5]);
+    expect(indicesVisibles(titres, new Set([cleDeTitre(titres, 0)]), '')).toEqual([0, 4, 5]);
+    expect(indicesVisibles(titres, new Set([cleDeTitre(titres, 0), cleDeTitre(titres, 4)]), '')).toEqual([0, 4]);
+  });
+
+  it('ignore le repli d’un titre qui n’a plus de sous-titres', () => {
+    const seul = extraireTitres('# A\n# B');
+    expect(indicesVisibles(seul, new Set([cleDeTitre(seul, 0)]), '')).toEqual([0, 1]);
+  });
+
+  it('cherche sans tenir compte des majuscules ni des accents, et sans tenir compte des replis', () => {
+    const lettres = extraireTitres('# Écrire un Plan\n## Détails\n## Autre\n# Résumé');
+    expect(indicesVisibles(lettres, new Set(), 'ecrire')).toEqual([0]);
+    expect(indicesVisibles(lettres, new Set(), ' RÉSUMÉ ')).toEqual([3]);
+    expect(indicesVisibles(lettres, new Set([cleDeTitre(lettres, 0)]), 'detail')).toEqual([1]);
+    expect(indicesVisibles(lettres, new Set(), 'zzz')).toEqual([]);
+  });
+
+  it('normalise les accents et la casse', () => {
+    expect(normaliser('Éléphant ÇA')).toBe('elephant ca');
   });
 });
