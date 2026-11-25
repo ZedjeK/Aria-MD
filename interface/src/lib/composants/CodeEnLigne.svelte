@@ -5,13 +5,18 @@
 -->
 <script lang="ts">
   import { onDestroy } from 'svelte';
+  import { colorer } from '../coloration';
   import { copier } from '../presse-papiers';
+  import CodeColore from './CodeColore.svelte';
 
   interface Props {
     texte: string;
   }
 
   let { texte }: Props = $props();
+
+  /** Un code en ligne n'a pas de langage : il n'est coloré que si highlight.js le reconnaît très sûrement. */
+  const coloration = $derived(colorer(texte, '', true));
 
   let etat = $state<'repos' | 'copie' | 'echec'>('repos');
   let minuterie: ReturnType<typeof setTimeout> | undefined;
@@ -42,7 +47,7 @@
   title="Cliquer pour copier"
   aria-label={`Copier : ${texte}`}
   onclick={() => void copierLeTexte()}
-  onkeydown={touche}><code>{texte}</code>{#if etat !== 'repos'}<span class="retour" role="status">{etat === 'copie' ? 'Copié' : 'Échec'}</span>{/if}</span
+  onkeydown={touche}><code>{#if coloration}<CodeColore noeuds={coloration.noeuds} />{:else}{texte}{/if}</code>{#if etat !== 'repos'}<span class="retour" role="status">{etat === 'copie' ? 'Copié' : 'Échec'}</span>{/if}</span
 >
 
 <style>
