@@ -90,17 +90,17 @@
   <p class="etiquette">Vitesse</p>
   <div class="cartes">
     <CarteChoix groupe="vitesse" valeur="lente" titre="Lente" bind:choisie={reglages.fond.vitesse} onchange={enregistrer}>
-      Un passage toutes les 14 s
+      Chaque ligne dure environ 22 s
     </CarteChoix>
     <CarteChoix groupe="vitesse" valeur="normale" titre="Normale" bind:choisie={reglages.fond.vitesse} onchange={enregistrer}>
-      Un passage toutes les 7 s
+      Chaque ligne dure environ 11 s
     </CarteChoix>
     <CarteChoix groupe="vitesse" valeur="rapide" titre="Rapide" bind:choisie={reglages.fond.vitesse} onchange={enregistrer}>
-      Un passage toutes les 3,5 s
+      Chaque ligne dure environ 6 s
     </CarteChoix>
   </div>
 
-  <p class="etiquette">Éléments par passage</p>
+  <p class="etiquette">Lignes de Markdown à l’écran</p>
   <div class="ligne">
     <label>Au moins <input type="number" min="1" max="12" bind:value={reglages.fond.minimum} onchange={enregistrer} /></label>
     <label>au plus <input type="number" min="1" max="12" bind:value={reglages.fond.maximum} onchange={enregistrer} /></label>
