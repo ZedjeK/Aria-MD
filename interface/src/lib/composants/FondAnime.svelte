@@ -178,7 +178,7 @@
         const taille = 14 * ratio * ligne.echelle;
         const x = ligne.x * largeur;
         const y = ((ligne.rangee + 0.5) / RANGEES) * hauteur;
-        const base = 0.5 * opacite(e);
+        const base = 0.4 * opacite(e);
 
         const source = partSource(e);
         if (source > 0 && base > 0) {
