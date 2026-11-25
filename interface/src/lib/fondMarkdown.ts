@@ -205,15 +205,23 @@ export function opacite(e: Etape): number {
   return 1;
 }
 
-/** Le nombre de rangées où poser les lignes : elles ne se marchent pas dessus. */
+/** Le nombre de rangées qui découpent la hauteur : les lignes s'y posent sans se marcher dessus. */
 export const RANGEES = 12;
 
-/** Une rangée libre au hasard ; si toutes sont prises, n'importe laquelle. */
+/**
+ * Les rangées où les lignes se posent : ni les deux du haut (le titre de la page et ses pastilles d'état) ni la dernière (la
+ * ligne d'état), pour que le texte fantôme ne passe pas sous du texte de l'appli.
+ */
+export const PREMIERE_RANGEE = 2;
+export const DERNIERE_RANGEE = RANGEES - 2;
+
+/** Une rangée libre au hasard, parmi celles où l'on peut se poser ; si toutes sont prises, n'importe laquelle d'entre elles. */
 export function rangeeLibre(occupees: ReadonlySet<number>, hasard: Hasard = Math.random): number {
-  const libres: number[] = [];
-  for (let i = 0; i < RANGEES; i += 1) if (!occupees.has(i)) libres.push(i);
-  const choix = libres.length > 0 ? libres : Array.from({ length: RANGEES }, (_, i) => i);
-  return choix[Math.min(choix.length - 1, Math.floor(hasard() * choix.length))] ?? 0;
+  const toutes: number[] = [];
+  for (let i = PREMIERE_RANGEE; i <= DERNIERE_RANGEE; i += 1) toutes.push(i);
+  const libres = toutes.filter((i) => !occupees.has(i));
+  const choix = libres.length > 0 ? libres : toutes;
+  return choix[Math.min(choix.length - 1, Math.floor(hasard() * choix.length))] ?? PREMIERE_RANGEE;
 }
 
 /** Une durée de vie au hasard autour de la durée moyenne : de 0,8 à 1,4 fois. */

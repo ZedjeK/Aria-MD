@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DERNIERE_RANGEE,
   NOMBRE_DE_MODELES,
+  PREMIERE_RANGEE,
   RANGEES,
   caracteresEcrits,
   dureeDeVie,
@@ -111,17 +113,28 @@ describe('vie d’une ligne', () => {
 });
 
 describe('rangées', () => {
-  it('choisit une rangée libre', () => {
-    const prises = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    expect(rangeeLibre(prises, () => 0)).toBe(11);
-    expect(rangeeLibre(new Set(), () => 0)).toBe(0);
-    expect(rangeeLibre(new Set(), () => 0.999_999)).toBe(RANGEES - 1);
+  it('ne pose jamais une ligne sous l\x27en-tête ni sur la ligne d\x27état', () => {
+    expect(rangeeLibre(new Set(), () => 0)).toBe(PREMIERE_RANGEE);
+    expect(rangeeLibre(new Set(), () => 0.999_999)).toBe(DERNIERE_RANGEE);
+    expect(PREMIERE_RANGEE).toBeGreaterThanOrEqual(2);
+    expect(DERNIERE_RANGEE).toBeLessThan(RANGEES - 1);
+    for (let i = 0; i < 200; i += 1) {
+      const rangee = rangeeLibre(new Set(), () => i / 200);
+      expect(rangee).toBeGreaterThanOrEqual(PREMIERE_RANGEE);
+      expect(rangee).toBeLessThanOrEqual(DERNIERE_RANGEE);
+    }
   });
 
-  it('prend n’importe quelle rangée quand toutes sont prises', () => {
+  it('choisit une rangée libre', () => {
+    const prises = new Set(Array.from({ length: DERNIERE_RANGEE - PREMIERE_RANGEE }, (_, i) => PREMIERE_RANGEE + i));
+    expect(rangeeLibre(prises, () => 0)).toBe(DERNIERE_RANGEE);
+    expect(rangeeLibre(prises, () => 0.999_999)).toBe(DERNIERE_RANGEE);
+  });
+
+  it('prend n\x27importe quelle rangée permise quand toutes sont prises', () => {
     const toutes = new Set(Array.from({ length: RANGEES }, (_, i) => i));
     const rangee = rangeeLibre(toutes, () => 0.5);
-    expect(rangee).toBeGreaterThanOrEqual(0);
-    expect(rangee).toBeLessThan(RANGEES);
+    expect(rangee).toBeGreaterThanOrEqual(PREMIERE_RANGEE);
+    expect(rangee).toBeLessThanOrEqual(DERNIERE_RANGEE);
   });
 });
