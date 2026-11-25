@@ -279,6 +279,86 @@ function blocDeCode(texte: string, debut: number, fin: number): Edition {
   };
 }
 
+const OUVERTURE_DE_BLOC = /^( {0,3})(`{3,}|~{3,})(.*)$/;
+const FERMETURE_DE_BLOC = /^ {0,3}(`{3,}|~{3,})[ \t]*$/;
+
+interface Ouverture {
+  /** Début et fin (hors saut de ligne) de la ligne qui ouvre le bloc. */
+  de: number;
+  a: number;
+  indentation: string;
+  /** Les guillemets inversés ou les tildes qui ouvrent le bloc, tels qu'écrits. */
+  barriere: string;
+}
+
+/**
+ * La ligne d'ouverture du bloc de code que touche la sélection, ou rien. Un bloc commence par trois guillemets inversés
+ * (ou tildes) et finit par une ligne de la même sorte, au moins aussi longue ; un bloc jamais refermé va jusqu'à la fin du
+ * texte, comme dans l'aperçu.
+ */
+function ouvertureDuBlocTouche(texte: string, debut: number, fin: number): Ouverture | null {
+  let position = 0;
+  let ouvert: Ouverture | null = null;
+  for (const ligne of texte.split('\n')) {
+    const finLigne = position + ligne.length;
+    if (ouvert === null) {
+      const lu = OUVERTURE_DE_BLOC.exec(ligne);
+      const barriere = lu?.[2] ?? '';
+      // Une ouverture avec des guillemets inversés ne peut pas en avoir dans son texte : c'est alors un code en ligne.
+      if (lu !== null && !(barriere.startsWith('`') && (lu[3] ?? '').includes('`'))) {
+        ouvert = { de: position, a: finLigne, indentation: lu[1] ?? '', barriere };
+      }
+    } else {
+      const fermante = FERMETURE_DE_BLOC.exec(ligne)?.[1] ?? '';
+      if (fermante.startsWith(ouvert.barriere[0] ?? '') && fermante.length >= ouvert.barriere.length) {
+        if (touche(ouvert.de, finLigne, debut, fin)) return ouvert;
+        ouvert = null;
+      }
+    }
+    position = finLigne + 1;
+  }
+  return ouvert !== null && touche(ouvert.de, texte.length, debut, fin) ? ouvert : null;
+}
+
+/** La sélection (ou le curseur) est-elle dans l'étendue [de, a] ? Une sélection qui ne fait que la frôler n'y est pas. */
+function touche(de: number, a: number, debut: number, fin: number): boolean {
+  return debut === fin ? debut >= de && debut <= a : debut < a && fin > de;
+}
+
+/**
+ * Un bloc de code dont le langage est choisi (`js`, `python`, rien pour « sans langage »). Si la sélection touche déjà un
+ * bloc, c'est son langage qui change, le code n'est pas touché ; sinon les lignes touchées sont entourées, avec le curseur
+ * ou la sélection dans le code.
+ */
+export function blocDeCodeEn(langage: string, texte: string, debut: number, fin: number): Edition {
+  const d = Math.max(0, Math.min(Math.min(debut, fin), texte.length));
+  const f = Math.max(d, Math.min(Math.max(debut, fin), texte.length));
+  const nom = langage.trim();
+  const ouverture = ouvertureDuBlocTouche(texte, d, f);
+  if (ouverture !== null) {
+    const ligne = `${ouverture.indentation}${ouverture.barriere}${nom}`;
+    const ancienne = texte.slice(ouverture.de, ouverture.a);
+    if (ligne === ancienne) return { de: d, a: d, par: '', debut: d, fin: f };
+    const ecart = ligne.length - ancienne.length;
+    // Ce qui est avant la ligne ne bouge pas, ce qui est après glisse ; sur la ligne même, la sélection se range à sa fin.
+    const apres = ouverture.de + ligne.length;
+    const decaler = (position: number): number =>
+      position <= ouverture.de ? position : position <= ouverture.a ? apres : position + ecart;
+    return { de: ouverture.de, a: ouverture.a, par: ligne, debut: decaler(d), fin: decaler(f) };
+  }
+  const plage = plageLignes(texte, d, f);
+  const corps = plage.lignes.join('\n');
+  const entete = `\`\`\`${nom}\n`;
+  const debutCorps = plage.de + entete.length;
+  return {
+    de: plage.de,
+    a: plage.a,
+    par: `${entete}${corps}\n\`\`\``,
+    debut: debutCorps,
+    fin: debutCorps + corps.length,
+  };
+}
+
 /** Ce qu'il faut écrire avant un bloc posé à la fin de la ligne : une ligne vide au-dessus, pour qu'il ne se colle pas au texte. */
 function separationAvant(texte: string, position: number): string {
   const debutLigne = debutDeLigne(texte, position);

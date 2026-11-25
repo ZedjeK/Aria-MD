@@ -4,16 +4,18 @@
 -->
 <script lang="ts">
   import type { Action } from '../formatage';
-  import { GROUPES, infobulle } from '../outils';
+  import { GROUPES, LANGAGES_DE_BLOC, infobulle } from '../outils';
   import Outil from './Outil.svelte';
 
   interface Props {
     appliquer: (action: Action) => void;
+    /** Un bloc de code dans ce langage (rien pour « sans langage ») ; si le curseur est dans un bloc, c'est son langage qui change. */
+    blocCodeEn: (langage: string) => void;
     /** Pas de zone de texte à mettre en forme : les outils sont grisés. */
     desactive?: boolean | undefined;
   }
 
-  let { appliquer, desactive = false }: Props = $props();
+  let { appliquer, blocCodeEn, desactive = false }: Props = $props();
 </script>
 
 {#if desactive}
@@ -33,7 +35,29 @@
   </section>
 {/each}
 
+<section class="groupe" aria-label="Bloc de code par langage">
+  <h4>Bloc de code par langage</h4>
+  <p class="aide">Un clic pose le bloc dans ce langage. Dans un bloc, il change son langage sans toucher au code.</p>
+  <div class="outils langages">
+    {#each LANGAGES_DE_BLOC as { libelle, langage } (langage)}
+      <Outil
+        titre={langage === '' ? 'Bloc de code, sans langage' : `Bloc de code ${libelle}`}
+        {desactive}
+        onclick={() => blocCodeEn(langage)}
+      >
+        {libelle}
+      </Outil>
+    {/each}
+  </div>
+</section>
+
 <style>
+  .aide {
+    margin: 0 0 8px;
+    color: var(--texte-2);
+    font-size: 12px;
+  }
+
   .note {
     margin: 12px 0 0;
     color: var(--texte-2);

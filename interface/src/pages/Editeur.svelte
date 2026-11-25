@@ -7,7 +7,7 @@
 <script lang="ts">
   import { fractionDefilement, positionDeFraction } from '../lib/defilement';
   import { libelleFins, nomAffiche, nombreDeLignes } from '../lib/documents';
-  import { appliquer as appliquerAction, raccourciVersAction, type Action } from '../lib/formatage';
+  import { appliquer as appliquerAction, blocDeCodeEn, raccourciVersAction, type Action } from '../lib/formatage';
   import { analyser } from '../lib/markdown';
   import { extraireTitres, ligneDuCurseur, titreCourant, type Titre } from '../lib/plan';
   import type { Session } from '../lib/session.svelte.js';
@@ -83,6 +83,13 @@
   function appliquer(action: Action) {
     if (!zone || session.occupe || vue === 'apercu') return;
     appliquerDansZone(zone, appliquerAction(action, zone.value, zone.selectionStart, zone.selectionEnd));
+    suivreCurseur();
+  }
+
+  /** Un bloc de code dans le langage choisi : posé autour de la sélection, ou son langage change si le curseur est dedans. */
+  function blocCodeEn(langage: string) {
+    if (!zone || session.occupe || vue === 'apercu') return;
+    appliquerDansZone(zone, blocDeCodeEn(langage, zone.value, zone.selectionStart, zone.selectionEnd));
     suivreCurseur();
   }
 
@@ -202,7 +209,7 @@
         <SousOnglets {onglets} bind:actif={onglet} />
         <div class="commentaire"><ASavoir>{commentaires[onglet]}</ASavoir></div>
         {#if onglet === 'raccourcis'}
-          <PanneauOutils {appliquer} desactive={vue === 'apercu'} />
+          <PanneauOutils {appliquer} {blocCodeEn} desactive={vue === 'apercu'} />
         {:else}
           <PanneauPlan {titres} {courant} {aller} />
         {/if}
