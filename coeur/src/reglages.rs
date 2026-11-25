@@ -32,7 +32,7 @@ impl<'de> Deserialize<'de> for Vitesse {
 }
 
 /// Le fond animé, réglages obligatoires de toute appli Aria : `fond.actif`, `fond.vitesse`, `fond.minimum` et
-/// `fond.maximum` (nombre d'éléments tirés au hasard à chaque passage).
+/// `fond.maximum` (nombre d'éléments à l'écran, tiré au hasard : dans Aria MD, des lignes de Markdown, 3 à 8 par défaut).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ReglagesFond {
@@ -66,8 +66,8 @@ impl Default for ReglagesFond {
         Self {
             actif: true,
             vitesse: Vitesse::Normale,
-            minimum: 2,
-            maximum: 5,
+            minimum: 3,
+            maximum: 8,
         }
     }
 }
